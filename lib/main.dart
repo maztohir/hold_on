@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -47,11 +49,13 @@ class _BreathAnimationState extends State<BreathAnimation>
 
   bool breathCompleted = false;
 
+  final int animationDuration = 5;
+
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 5),
+      duration: Duration(seconds: animationDuration),
       vsync: this,
     );
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
@@ -66,7 +70,38 @@ class _BreathAnimationState extends State<BreathAnimation>
         // _controller.forward();
       }
     });
+    // _controller.addListener(_vibrationHandler);
+    _getVibrationPattern(maxTimeSecond: animationDuration);
     _controller.forward();
+  }
+
+  List<num> _getVibrationPattern(
+      {num initalTimeGap = 1,
+      required int maxTimeSecond,
+      num vibrationPeriodSecond = 0.001,
+      int rounding = 7}) {
+    num currentTimeRunning = initalTimeGap;
+
+    num totalTimeGap = initalTimeGap;
+    List<num> timeGaps = [vibrationPeriodSecond, initalTimeGap];
+    num maxTimeSecondTollerance = maxTimeSecond * 0.999;
+
+    while (totalTimeGap < maxTimeSecondTollerance) {
+      num newTimeRunning = sqrt(maxTimeSecond * currentTimeRunning);
+      num newTimeGap = double.parse(
+          (newTimeRunning - currentTimeRunning).toStringAsFixed(rounding));
+
+      timeGaps.add(vibrationPeriodSecond);
+      timeGaps.add(newTimeGap / 2);
+
+      timeGaps.add(vibrationPeriodSecond);
+      timeGaps.add(newTimeGap / 2);
+
+      currentTimeRunning = newTimeRunning;
+      totalTimeGap += newTimeGap;
+    }
+
+    return timeGaps;
   }
 
   @override
@@ -147,14 +182,16 @@ class _BreathAnimationState extends State<BreathAnimation>
             ),
             const SizedBox(height: 70),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 36,
+              ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: TextButton(
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: 16,
+                      vertical: 14,
                     ),
                     backgroundColor: Colors.white,
                   ),
