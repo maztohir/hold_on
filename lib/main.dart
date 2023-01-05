@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:vibration/vibration.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'HoldOn',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -71,19 +72,24 @@ class _BreathAnimationState extends State<BreathAnimation>
       }
     });
     // _controller.addListener(_vibrationHandler);
-    _getVibrationPattern(maxTimeSecond: animationDuration);
+    List<int> vibrationPattern =
+        _getVibrationPattern(maxTimeSecond: animationDuration);
+    Vibration.vibrate(pattern: vibrationPattern);
     _controller.forward();
   }
 
-  List<num> _getVibrationPattern(
-      {num initalTimeGap = 1,
+  List<int> _getVibrationPattern(
+      {num initalTimeGapSecond = 1,
       required int maxTimeSecond,
-      num vibrationPeriodSecond = 0.001,
+      int vibrationPeriodMillis = 200,
       int rounding = 7}) {
-    num currentTimeRunning = initalTimeGap;
+    num currentTimeRunning = initalTimeGapSecond;
 
-    num totalTimeGap = initalTimeGap;
-    List<num> timeGaps = [vibrationPeriodSecond, initalTimeGap];
+    num totalTimeGap = initalTimeGapSecond;
+    List<int> timeGapsInMillis = [
+      vibrationPeriodMillis,
+      (initalTimeGapSecond * 1000).round()
+    ];
     num maxTimeSecondTollerance = maxTimeSecond * 0.999;
 
     while (totalTimeGap < maxTimeSecondTollerance) {
@@ -91,17 +97,22 @@ class _BreathAnimationState extends State<BreathAnimation>
       num newTimeGap = double.parse(
           (newTimeRunning - currentTimeRunning).toStringAsFixed(rounding));
 
-      timeGaps.add(vibrationPeriodSecond);
-      timeGaps.add(newTimeGap / 2);
+      int newTimeGapInMillis = ((newTimeGap / 2) * 1000).round();
+      int adjustedVibrationPeriodMillis =
+          vibrationPeriodMillis < newTimeGapInMillis
+              ? vibrationPeriodMillis
+              : newTimeGapInMillis;
+      timeGapsInMillis.add(adjustedVibrationPeriodMillis);
+      timeGapsInMillis.add(newTimeGapInMillis);
 
-      timeGaps.add(vibrationPeriodSecond);
-      timeGaps.add(newTimeGap / 2);
+      timeGapsInMillis.add(adjustedVibrationPeriodMillis);
+      timeGapsInMillis.add(newTimeGapInMillis);
 
       currentTimeRunning = newTimeRunning;
       totalTimeGap += newTimeGap;
     }
 
-    return timeGaps;
+    return timeGapsInMillis;
   }
 
   @override
@@ -172,7 +183,7 @@ class _BreathAnimationState extends State<BreathAnimation>
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                "Are you sure still wanted to open Instagram?",
+                "Are you sure still wanted to open the app?",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 18,
@@ -213,7 +224,7 @@ class _BreathAnimationState extends State<BreathAnimation>
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                "Yes, open instagram, and waste my time",
+                "Yes, open the previous app, and waste my time",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 16,
