@@ -1,4 +1,4 @@
-package com.example.hold_on
+package com.maztohir.hold_on
 
 import io.flutter.embedding.android.FlutterActivity
 

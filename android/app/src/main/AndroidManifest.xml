@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.hold_on">
+    package="com.maztohir.hold_on">
    <application
-        android:label="hold_on"
+        android:label="Hold On"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

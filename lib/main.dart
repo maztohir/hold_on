@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:vibration/vibration.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'HoldOn',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -47,11 +50,13 @@ class _BreathAnimationState extends State<BreathAnimation>
 
   bool breathCompleted = false;
 
+  final int animationDuration = 5;
+
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 5),
+      duration: Duration(seconds: animationDuration),
       vsync: this,
     );
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
@@ -66,7 +71,48 @@ class _BreathAnimationState extends State<BreathAnimation>
         // _controller.forward();
       }
     });
+    // _controller.addListener(_vibrationHandler);
+    List<int> vibrationPattern =
+        _getVibrationPattern(maxTimeSecond: animationDuration);
+    Vibration.vibrate(pattern: vibrationPattern);
     _controller.forward();
+  }
+
+  List<int> _getVibrationPattern(
+      {num initalTimeGapSecond = 1,
+      required int maxTimeSecond,
+      int vibrationPeriodMillis = 200,
+      int rounding = 7}) {
+    num currentTimeRunning = initalTimeGapSecond;
+
+    num totalTimeGap = initalTimeGapSecond;
+    List<int> timeGapsInMillis = [
+      vibrationPeriodMillis,
+      (initalTimeGapSecond * 1000).round()
+    ];
+    num maxTimeSecondTollerance = maxTimeSecond * 0.999;
+
+    while (totalTimeGap < maxTimeSecondTollerance) {
+      num newTimeRunning = sqrt(maxTimeSecond * currentTimeRunning);
+      num newTimeGap = double.parse(
+          (newTimeRunning - currentTimeRunning).toStringAsFixed(rounding));
+
+      int newTimeGapInMillis = ((newTimeGap / 2) * 1000).round();
+      int adjustedVibrationPeriodMillis =
+          vibrationPeriodMillis < newTimeGapInMillis
+              ? vibrationPeriodMillis
+              : newTimeGapInMillis;
+      timeGapsInMillis.add(adjustedVibrationPeriodMillis);
+      timeGapsInMillis.add(newTimeGapInMillis);
+
+      timeGapsInMillis.add(adjustedVibrationPeriodMillis);
+      timeGapsInMillis.add(newTimeGapInMillis);
+
+      currentTimeRunning = newTimeRunning;
+      totalTimeGap += newTimeGap;
+    }
+
+    return timeGapsInMillis;
   }
 
   @override
@@ -137,7 +183,7 @@ class _BreathAnimationState extends State<BreathAnimation>
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                "Are you sure still wanted to open Instagram?",
+                "Are you sure still wanted to open the app?",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 18,
@@ -147,14 +193,16 @@ class _BreathAnimationState extends State<BreathAnimation>
             ),
             const SizedBox(height: 70),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 36,
+              ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: TextButton(
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: 16,
+                      vertical: 14,
                     ),
                     backgroundColor: Colors.white,
                   ),
@@ -176,7 +224,7 @@ class _BreathAnimationState extends State<BreathAnimation>
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                "Yes, open instagram, and waste my time",
+                "Yes, open the previous app, and waste my time",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 16,
