@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.maztohir.hold_on">
+    package="com.maztohir.holdon">
    <application
         android:label="Hold On"
         android:name="${applicationName}"
